@@ -78,19 +78,33 @@ const validateFMBDumpSheet = (sheets: SheetData[]): {
   const errorsBySheet: Record<string, number> = {};
   const warningsBySheet: Record<string, number> = {};
 
-  // Expected sheet names for FMB dump
+  // Expected sheet names for FMB dump (exact names required)
   const expectedSheets = [
-    'Designation Mapping Sheet',
+    'Designation Mapping',
     'Survey Master',
     'Question Master',
-    'Access Sheet',
-    'Question Types'
+    'Access Sheet'
   ];
 
-  // Check if required sheets exist
+  // Check if we have exactly 4 sheets with correct names
+  if (sheets.length !== 4) {
+    const error: ValidationError = {
+      id: `incorrect-sheet-count`,
+      sheet: 'File Structure',
+      row: 0,
+      column: '',
+      field: 'Sheet Count',
+      message: `File must contain exactly 4 sheets. Found ${sheets.length} sheets.`,
+      severity: 'error',
+      rule: 'SHEET_COUNT_001',
+    };
+    errors.push(error);
+  }
+
+  // Check if required sheets exist with exact names
   expectedSheets.forEach(expectedSheet => {
     const found = sheets.find(sheet => 
-      sheet.name.toLowerCase().includes(expectedSheet.toLowerCase())
+      sheet.name.trim() === expectedSheet
     );
     
     if (!found) {
@@ -100,9 +114,26 @@ const validateFMBDumpSheet = (sheets: SheetData[]): {
         row: 0,
         column: '',
         field: 'Required Sheet',
-        message: `Missing required sheet: ${expectedSheet}`,
+        message: `Missing required sheet: "${expectedSheet}". Sheet names must be exact.`,
         severity: 'error',
         rule: 'SHEET_STRUCTURE_001',
+      };
+      errors.push(error);
+    }
+  });
+
+  // Check for unexpected sheets
+  sheets.forEach(sheet => {
+    if (!expectedSheets.includes(sheet.name.trim())) {
+      const error: ValidationError = {
+        id: `unexpected-sheet-${sheet.name}`,
+        sheet: 'File Structure',
+        row: 0,
+        column: '',
+        field: 'Unexpected Sheet',
+        message: `Unexpected sheet: "${sheet.name}". Only these sheets are allowed: ${expectedSheets.join(', ')}`,
+        severity: 'error',
+        rule: 'SHEET_STRUCTURE_002',
       };
       errors.push(error);
     }
@@ -165,14 +196,14 @@ const validateSheet = (sheet: SheetData): ValidationError[] => {
     });
   }
 
-  // Sheet-specific validations
-  if (sheet.name.toLowerCase().includes('designation mapping')) {
+  // Sheet-specific validations (exact name matching)
+  if (sheet.name.trim() === 'Designation Mapping') {
     return validateDesignationMappingSheet(sheet);
-  } else if (sheet.name.toLowerCase().includes('survey master')) {
+  } else if (sheet.name.trim() === 'Survey Master') {
     return validateSurveyMasterSheet(sheet);
-  } else if (sheet.name.toLowerCase().includes('question master')) {
+  } else if (sheet.name.trim() === 'Question Master') {
     return validateQuestionMasterSheet(sheet);
-  } else if (sheet.name.toLowerCase().includes('access sheet')) {
+  } else if (sheet.name.trim() === 'Access Sheet') {
     return validateAccessSheet(sheet);
   }
 

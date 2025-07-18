@@ -1,16 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   CheckCircle2, 
   XCircle, 
   AlertTriangle, 
   Download, 
   FileText,
-  Sheet
+  Sheet,
+  Filter
 } from 'lucide-react';
 import { ParsedFile, ValidationError } from '@/types/validation';
 
@@ -24,6 +26,15 @@ export const ValidationDashboard: React.FC<ValidationDashboardProps> = ({
   onDownloadReport,
 }) => {
   const { validationSummary, validationErrors, sheets } = parsedFile;
+  const [selectedSheet, setSelectedSheet] = useState<string>('all');
+  
+  // Get unique sheet names for filter
+  const availableSheets = Array.from(new Set(validationErrors.map(error => error.sheet)));
+  
+  // Filter errors based on selected sheet
+  const filteredErrors = selectedSheet === 'all' 
+    ? validationErrors 
+    : validationErrors.filter(error => error.sheet === selectedSheet);
 
   const getSeverityIcon = (severity: ValidationError['severity']) => {
     switch (severity) {
@@ -136,16 +147,39 @@ export const ValidationDashboard: React.FC<ValidationDashboardProps> = ({
         </Alert>
       )}
 
+      {/* Sheet Filter */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-center space-x-4">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium">Filter by Sheet:</span>
+            <Select value={selectedSheet} onValueChange={setSelectedSheet}>
+              <SelectTrigger className="w-64">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Sheets</SelectItem>
+                {availableSheets.map(sheetName => (
+                  <SelectItem key={sheetName} value={sheetName}>
+                    {sheetName} ({validationErrors.filter(e => e.sheet === sheetName).length})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Detailed Results */}
       <Tabs defaultValue="errors" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="errors" className="flex items-center space-x-2">
             <XCircle className="h-4 w-4" />
-            <span>Errors ({validationSummary.totalErrors})</span>
+            <span>Errors ({filteredErrors.filter(e => e.severity === 'error').length})</span>
           </TabsTrigger>
           <TabsTrigger value="warnings" className="flex items-center space-x-2">
             <AlertTriangle className="h-4 w-4" />
-            <span>Warnings ({validationSummary.totalWarnings})</span>
+            <span>Warnings ({filteredErrors.filter(e => e.severity === 'warning').length})</span>
           </TabsTrigger>
           <TabsTrigger value="sheets" className="flex items-center space-x-2">
             <FileText className="h-4 w-4" />
@@ -154,16 +188,18 @@ export const ValidationDashboard: React.FC<ValidationDashboardProps> = ({
         </TabsList>
 
         <TabsContent value="errors" className="space-y-4">
-          {validationErrors.filter(error => error.severity === 'error').length === 0 ? (
+          {filteredErrors.filter(error => error.severity === 'error').length === 0 ? (
             <Card>
               <CardContent className="p-8 text-center">
                 <CheckCircle2 className="h-12 w-12 text-success mx-auto mb-4" />
-                <p className="text-muted-foreground">No errors found! ✨</p>
+                <p className="text-muted-foreground">
+                  {selectedSheet === 'all' ? 'No errors found! ✨' : `No errors found in ${selectedSheet}! ✨`}
+                </p>
               </CardContent>
             </Card>
           ) : (
             <div className="space-y-3">
-              {validationErrors
+              {filteredErrors
                 .filter(error => error.severity === 'error')
                 .map((error) => (
                   <Card key={error.id}>
@@ -189,16 +225,18 @@ export const ValidationDashboard: React.FC<ValidationDashboardProps> = ({
         </TabsContent>
 
         <TabsContent value="warnings" className="space-y-4">
-          {validationErrors.filter(error => error.severity === 'warning').length === 0 ? (
+          {filteredErrors.filter(error => error.severity === 'warning').length === 0 ? (
             <Card>
               <CardContent className="p-8 text-center">
                 <CheckCircle2 className="h-12 w-12 text-success mx-auto mb-4" />
-                <p className="text-muted-foreground">No warnings found!</p>
+                <p className="text-muted-foreground">
+                  {selectedSheet === 'all' ? 'No warnings found!' : `No warnings found in ${selectedSheet}!`}
+                </p>
               </CardContent>
             </Card>
           ) : (
             <div className="space-y-3">
-              {validationErrors
+              {filteredErrors
                 .filter(error => error.severity === 'warning')
                 .map((error) => (
                   <Card key={error.id}>
