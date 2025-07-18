@@ -88,46 +88,6 @@ export const FileUpload: React.FC<FileUploadProps> = ({
         </CardContent>
       </Card>
 
-      {/* OR Divider */}
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-border" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">Or</span>
-        </div>
-      </div>
-
-      {/* Google Sheets Input */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <Link2 className="h-5 w-5 text-primary" />
-              <h3 className="text-lg font-semibold">Import from Google Sheets</h3>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Paste a public Google Sheets URL to import your FMB dump sheet directly
-            </p>
-            <div className="flex space-x-2">
-              <Input
-                placeholder="https://docs.google.com/spreadsheets/d/..."
-                value={googleSheetUrl}
-                onChange={(e) => setGoogleSheetUrl(e.target.value)}
-                disabled={isProcessing}
-                className="flex-1"
-              />
-              <Button
-                onClick={handleGoogleSheetSubmit}
-                disabled={!googleSheetUrl.trim() || isProcessing}
-                variant="outline"
-              >
-                Import
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };
