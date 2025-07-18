@@ -32,7 +32,6 @@ export interface ParsedFile {
 
 export interface FileUploadState {
   file: File | null;
-  googleSheetUrl: string;
   isProcessing: boolean;
   parsedData: ParsedFile | null;
   error: string | null;

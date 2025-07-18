@@ -69,47 +69,6 @@ export const parseFile = async (file: File): Promise<ParsedFile> => {
   });
 };
 
-export const parseGoogleSheet = async (url: string): Promise<ParsedFile> => {
-  // Extract sheet ID from Google Sheets URL
-  const sheetIdMatch = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-  if (!sheetIdMatch) {
-    throw new Error('Invalid Google Sheets URL');
-  }
-  
-  const sheetId = sheetIdMatch[1];
-  const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
-  
-  try {
-    const response = await fetch(csvUrl);
-    if (!response.ok) {
-      throw new Error('Failed to access Google Sheet. Make sure it is publicly accessible.');
-    }
-    
-    const csvData = await response.text();
-    const parsed = Papa.parse(csvData, {
-      header: false,
-      skipEmptyLines: true,
-    });
-    
-    const sheets: SheetData[] = [{
-      name: 'Sheet1',
-      data: parsed.data as string[][],
-      headers: parsed.data[0] as string[] || [],
-    }];
-    
-    const validationResults = validateFMBDumpSheet(sheets);
-    
-    return {
-      fileName: 'Google Sheet',
-      sheets,
-      isValid: validationResults.summary.totalErrors === 0,
-      validationErrors: validationResults.errors,
-      validationSummary: validationResults.summary,
-    };
-  } catch (error) {
-    throw new Error(`Failed to parse Google Sheet: ${error}`);
-  }
-};
 
 const validateFMBDumpSheet = (sheets: SheetData[]): { 
   errors: ValidationError[], 

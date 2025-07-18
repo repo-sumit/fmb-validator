@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { FileUpload } from './FileUpload';
 import { ValidationDashboard } from './ValidationDashboard';
-import { parseFile, parseGoogleSheet } from '@/utils/fileParser';
+import { parseFile } from '@/utils/fileParser';
 import { downloadValidationReport } from '@/utils/exportReport';
 import { FileUploadState } from '@/types/validation';
 import { Loader2, FileCheck, ArrowLeft } from 'lucide-react';
@@ -12,7 +12,6 @@ import { toast } from '@/hooks/use-toast';
 export const FMBValidator: React.FC = () => {
   const [state, setState] = useState<FileUploadState>({
     file: null,
-    googleSheetUrl: '',
     isProcessing: false,
     parsedData: null,
     error: null,
@@ -41,28 +40,6 @@ export const FMBValidator: React.FC = () => {
     }
   };
 
-  const handleGoogleSheetUrl = async (url: string) => {
-    setState(prev => ({ ...prev, isProcessing: true, error: null, googleSheetUrl: url }));
-    
-    try {
-      const parsedData = await parseGoogleSheet(url);
-      setState(prev => ({ ...prev, parsedData, isProcessing: false }));
-      
-      toast({
-        title: "Google Sheet processed successfully",
-        description: `Found ${parsedData.validationSummary.totalErrors} errors and ${parsedData.validationSummary.totalWarnings} warnings`,
-      });
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      setState(prev => ({ ...prev, error: errorMessage, isProcessing: false }));
-      
-      toast({
-        title: "Processing failed",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    }
-  };
 
   const handleDownloadReport = () => {
     if (state.parsedData) {
@@ -77,7 +54,6 @@ export const FMBValidator: React.FC = () => {
   const handleReset = () => {
     setState({
       file: null,
-      googleSheetUrl: '',
       isProcessing: false,
       parsedData: null,
       error: null,
@@ -147,7 +123,7 @@ export const FMBValidator: React.FC = () => {
             FMB Dump-Sheet Validator
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Upload your Excel files or Google Sheets to validate FMB dump sheets according to comprehensive quality standards
+            Upload your Excel files to validate FMB dump sheets according to comprehensive quality standards
           </p>
         </div>
 
@@ -163,7 +139,6 @@ export const FMBValidator: React.FC = () => {
             <CardContent className="p-6">
               <FileUpload
                 onFileSelect={handleFileSelect}
-                onGoogleSheetUrl={handleGoogleSheetUrl}
                 isProcessing={state.isProcessing}
                 error={state.error}
               />
@@ -180,7 +155,6 @@ export const FMBValidator: React.FC = () => {
                 <ul className="space-y-2 text-sm text-muted-foreground">
                   <li>• Excel files (.xlsx, .xls)</li>
                   <li>• CSV files (.csv)</li>
-                  <li>• Public Google Sheets (via URL)</li>
                 </ul>
               </CardContent>
             </Card>

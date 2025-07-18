@@ -1,25 +1,20 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { Upload, FileSpreadsheet, Link2, AlertCircle } from 'lucide-react';
+import { Upload, FileSpreadsheet, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface FileUploadProps {
   onFileSelect: (file: File) => void;
-  onGoogleSheetUrl: (url: string) => void;
   isProcessing: boolean;
   error: string | null;
 }
 
 export const FileUpload: React.FC<FileUploadProps> = ({
   onFileSelect,
-  onGoogleSheetUrl,
   isProcessing,
   error,
 }) => {
-  const [googleSheetUrl, setGoogleSheetUrl] = useState('');
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
@@ -38,11 +33,6 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     disabled: isProcessing,
   });
 
-  const handleGoogleSheetSubmit = () => {
-    if (googleSheetUrl.trim()) {
-      onGoogleSheetUrl(googleSheetUrl.trim());
-    }
-  };
 
   return (
     <div className="space-y-6">
